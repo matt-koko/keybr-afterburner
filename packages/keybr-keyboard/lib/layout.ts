@@ -932,6 +932,15 @@ export class Layout implements XEnumItem {
     /* emulate= */ true,
     /* geometries= */ new Enum(Geometry.MATRIX),
   );
+  static readonly EN_AFTERBURNER = new Layout(
+    /* id= */ "en-afterburner",
+    /* xid= */ 0xba,
+    /* name= */ "Afterburner",
+    /* family= */ "afterburner",
+    /* language= */ Language.EN,
+    /* emulate= */ true,
+    /* geometries= */ new Enum(Geometry.MATRIX),
+  );
   static readonly ES_MX = new Layout(
     /* id= */ "es-mx",
     /* xid= */ 0x97,
@@ -1342,6 +1351,7 @@ export class Layout implements XEnumItem {
     Layout.EN_HANDS_DOWN_PROMETHIUM,
     Layout.EN_HANDS_DOWN_PROMETHIUM_INVERTED,
     Layout.EN_STURDY,
+    Layout.EN_AFTERBURNER,
     Layout.EN_NORMAN,
     Layout.EN_HALMAK,
     Layout.EN_ENGRAM,

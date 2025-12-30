@@ -59,6 +59,7 @@ for (const [id, layout] of [
   ["en_night_matrix", importKeymap("layouts/en_night_matrix.json")],
   ["en_norman", importKeymap("layouts/en_norman.json")],
   ["en_sturdy", importKeymap("layouts/en_sturdy.json")],
+  ["en_afterburner", importKeymap("layouts/en_afterburner.json")],
   ["en_uk", importCldr("cldr-keyboards-43.0/keyboards/windows/en-GB-t-k0-windows.xml")],
   ["en_us", importCldr("cldr-keyboards-43.0/keyboards/windows/en-t-k0-windows.xml")],
   ["en_workman", importKeymap("layouts/en_workman.json")],
