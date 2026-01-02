@@ -55,6 +55,40 @@ const SKIP_MAGIC_RULES: ReadonlyMap<string, string> = new Map([
 ]);
 
 /**
+ * Checks if a character at the given index would be typed using the magic key.
+ * This is used to determine if skip magic should apply - if the character
+ * at index-2 was typed with magic, there's no SFS to avoid.
+ */
+function wouldUseMagicKey(
+  chars: readonly { codePoint: number }[],
+  index: number,
+): boolean {
+  if (index < 1 || index >= chars.length) {
+    return false;
+  }
+
+  const currentChar = String.fromCodePoint(
+    chars[index].codePoint,
+  ).toLowerCase();
+  const lastChar = String.fromCodePoint(
+    chars[index - 1].codePoint,
+  ).toLowerCase();
+
+  // Check if magic rule applies
+  const magicOutput = MAGIC_RULES.get(lastChar);
+  if (magicOutput === currentChar) {
+    return true;
+  }
+
+  // Check if magic repeat applies (same char, no specific magic rule)
+  if (lastChar === currentChar && !MAGIC_RULES.has(lastChar)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Analyzes a character in context to determine if it should be typed
  * using the magic key or skip magic key.
  *
@@ -75,22 +109,29 @@ export function getMagicType(
   ).toLowerCase();
 
   // Check for skip magic (requires at least 2 characters before)
+  // BUT: only if the character at index-2 was NOT typed using magic key.
+  // If it was typed with magic, the actual key pressed was the magic key,
+  // not the letter key, so there's no SFS to avoid.
   if (index >= 2) {
-    const secondToLastChar = String.fromCodePoint(
-      chars[index - 2].codePoint,
-    ).toLowerCase();
-    const skipMagicOutput = SKIP_MAGIC_RULES.get(secondToLastChar);
+    const charAtMinus2UsedMagic = wouldUseMagicKey(chars, index - 2);
 
-    if (skipMagicOutput === currentChar) {
-      return "skipMagic";
-    }
+    if (!charAtMinus2UsedMagic) {
+      const secondToLastChar = String.fromCodePoint(
+        chars[index - 2].codePoint,
+      ).toLowerCase();
+      const skipMagicOutput = SKIP_MAGIC_RULES.get(secondToLastChar);
 
-    // Skip magic also repeats if same character (e.g., "none" → "no$e")
-    if (
-      secondToLastChar === currentChar &&
-      !SKIP_MAGIC_RULES.has(secondToLastChar)
-    ) {
-      return "skipMagic";
+      if (skipMagicOutput === currentChar) {
+        return "skipMagic";
+      }
+
+      // Skip magic also repeats if same character (e.g., "none" → "no$e")
+      if (
+        secondToLastChar === currentChar &&
+        !SKIP_MAGIC_RULES.has(secondToLastChar)
+      ) {
+        return "skipMagic";
+      }
     }
   }
 
