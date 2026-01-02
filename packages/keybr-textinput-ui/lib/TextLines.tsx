@@ -13,7 +13,7 @@ import {
   memo,
   type ReactNode,
 } from "react";
-import { renderChars } from "./chars.tsx";
+import { type MagicContext, renderChars } from "./chars.tsx";
 import { Cursor } from "./Cursor.tsx";
 import { textItemStyle } from "./styles.ts";
 import * as styles from "./TextLines.module.less";
@@ -70,6 +70,14 @@ export const TextLines = memo(function TextLines({
   return cursor ? <Cursor settings={settings}>{children}</Cursor> : children;
 });
 
+/**
+ * Item with its offset in the full line for magic context.
+ */
+type ItemWithOffset = {
+  chars: readonly Char[];
+  offset: number;
+};
+
 const TextLine = memo(
   function TextLine({
     settings,
@@ -82,8 +90,9 @@ const TextLine = memo(
     readonly className: string;
     readonly style: CSSProperties;
   }): ReactNode {
-    const items: Char[][] = [];
+    const items: ItemWithOffset[] = [];
     let itemChars: Char[] = [];
+    let itemStart = 0;
     let ws = false;
     for (let i = 0; i < chars.length; i++) {
       const char = chars[i];
@@ -96,9 +105,10 @@ const TextLine = memo(
         default:
           if (ws) {
             if (itemChars.length > 0) {
-              items.push(itemChars);
+              items.push({ chars: itemChars, offset: itemStart });
               itemChars = [];
             }
+            itemStart = i;
             ws = false;
           }
           break;
@@ -106,7 +116,7 @@ const TextLine = memo(
       itemChars.push(char);
     }
     if (itemChars.length > 0) {
-      items.push(itemChars);
+      items.push({ chars: itemChars, offset: itemStart });
       itemChars = [];
     }
     return (
@@ -115,8 +125,13 @@ const TextLine = memo(
         style={style}
         dir={settings.language.direction}
       >
-        {items.map((chars, index) => (
-          <TextItem key={index} settings={settings} chars={chars} />
+        {items.map((item, index) => (
+          <TextItem
+            key={index}
+            settings={settings}
+            chars={item.chars}
+            magicContext={{ contextChars: chars, offset: item.offset }}
+          />
         ))}
       </div>
     );
@@ -131,13 +146,20 @@ const TextItem = memo(
   function TextItem({
     settings,
     chars,
+    magicContext,
   }: {
     readonly settings: TextDisplaySettings;
     readonly chars: readonly Char[];
+    readonly magicContext?: MagicContext;
   }): ReactNode {
-    return <span style={textItemStyle}>{renderChars(settings, chars)}</span>;
+    return (
+      <span style={textItemStyle}>
+        {renderChars(settings, chars, magicContext)}
+      </span>
+    );
   },
   (prevProps, nextProps) =>
     prevProps.settings === nextProps.settings &&
-    charArraysAreEqual(prevProps.chars, nextProps.chars), // deep equality
+    charArraysAreEqual(prevProps.chars, nextProps.chars) &&
+    prevProps.magicContext?.offset === nextProps.magicContext?.offset, // compare offset
 );

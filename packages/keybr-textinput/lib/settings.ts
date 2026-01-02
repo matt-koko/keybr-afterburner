@@ -1,4 +1,4 @@
-import { KeyboardOptions, Language } from "@keybr/keyboard";
+import { KeyboardOptions, Language, type Layout } from "@keybr/keyboard";
 import {
   booleanProp,
   enumProp,
@@ -56,6 +56,7 @@ export type TextDisplaySettings = {
   readonly caretMovementStyle: CaretMovementStyle;
   readonly whitespaceStyle: WhitespaceStyle;
   readonly language: Language;
+  readonly layout: Layout | null;
 };
 
 export enum CaretShapeStyle {
@@ -82,6 +83,7 @@ export const textDisplaySettings = {
   caretMovementStyle: CaretMovementStyle.Smooth,
   whitespaceStyle: WhitespaceStyle.Bullet,
   language: Language.EN,
+  layout: null,
 } as const satisfies TextDisplaySettings;
 
 export const textDisplayProps = {
@@ -107,7 +109,7 @@ export function toTextDisplaySettings(settings: Settings): TextDisplaySettings {
   const caretShapeStyle = settings.get(textDisplayProps.caretShapeStyle);
   const caretMovementStyle = settings.get(textDisplayProps.caretMovementStyle);
   const whitespaceStyle = settings.get(textDisplayProps.whitespaceStyle);
-  const { language } = KeyboardOptions.from(settings);
+  const { language, layout } = KeyboardOptions.from(settings);
   const fonts = Font.select(language);
   const font = Font.find(fonts, settings.get(textDisplayProps.font));
   return {
@@ -116,5 +118,6 @@ export function toTextDisplaySettings(settings: Settings): TextDisplaySettings {
     caretMovementStyle,
     whitespaceStyle,
     language,
+    layout,
   };
 }
