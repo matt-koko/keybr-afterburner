@@ -25,10 +25,14 @@ export type MagicContext = {
 };
 
 /**
- * Checks if the current layout is Afterburner.
+ * Checks if magic key highlighting should be shown.
+ * Requires Afterburner layout AND the setting to be enabled.
  */
-function isAfterburnerLayout(settings: TextDisplaySettings): boolean {
-  return settings.layout?.id === Layout.EN_AFTERBURNER.id;
+function shouldShowMagicHighlighting(settings: TextDisplaySettings): boolean {
+  return (
+    settings.layout?.id === Layout.EN_AFTERBURNER.id &&
+    settings.magicKeyHighlighting
+  );
 }
 
 /**
@@ -39,12 +43,16 @@ function getMagicStyle(
   magicContext: MagicContext | undefined,
   localIndex: number,
 ): CSSProperties | undefined {
-  if (!magicContext || !isAfterburnerLayout(settings)) {
+  if (!magicContext || !shouldShowMagicHighlighting(settings)) {
     return undefined;
   }
 
   const globalIndex = magicContext.offset + localIndex;
-  const magicType = getMagicType(magicContext.contextChars, globalIndex);
+  const magicType = getMagicType(magicContext.contextChars, globalIndex, {
+    suppressSkipMagicAfterMagic: settings.suppressSkipMagicAfterMagic,
+    suppressMagicAfterSkipMagic: settings.suppressMagicAfterSkipMagic,
+    suppressSkipMagicAfterSpace: settings.suppressSkipMagicAfterSpace,
+  });
 
   if (magicType === "magic") {
     return { backgroundColor: MAGIC_BACKGROUND_COLOR };
@@ -61,7 +69,7 @@ export function renderChars(
   magicContext?: MagicContext,
 ): ReactNode[] {
   const nodes: ReactNode[] = [];
-  const showMagic = isAfterburnerLayout(settings) && magicContext;
+  const showMagic = shouldShowMagicHighlighting(settings) && magicContext;
 
   // When showing magic highlights, we need to render each character individually
   // to apply different background colors

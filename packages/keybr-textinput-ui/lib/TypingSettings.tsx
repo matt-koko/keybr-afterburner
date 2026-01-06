@@ -1,4 +1,4 @@
-import { KeyboardOptions, useKeyboard } from "@keybr/keyboard";
+import { KeyboardOptions, Layout, useKeyboard } from "@keybr/keyboard";
 import { Tasks } from "@keybr/lang";
 import { Settings, useSettings } from "@keybr/settings";
 import {
@@ -72,6 +72,7 @@ export function TypingSettings() {
         <SoundsProp />
         <SoundsThemeProp />
       </FieldSet>
+      <AfterburnerSettings />
     </>
   );
 }
@@ -591,5 +592,153 @@ function SoundThemePreview() {
         setPlaying(!playing);
       }}
     />
+  );
+}
+
+function AfterburnerSettings() {
+  const { settings } = useSettings();
+  const { layout } = KeyboardOptions.from(settings);
+
+  // Only show Afterburner settings when the Afterburner layout is selected
+  if (layout.id !== Layout.EN_AFTERBURNER.id) {
+    return null;
+  }
+
+  return (
+    <FieldSet legend="Afterburner Settings">
+      <Explainer>
+        <Description>
+          Settings specific to the Afterburner keyboard layout.
+        </Description>
+      </Explainer>
+      <MagicKeyHighlightingProp />
+      <SuppressSkipMagicAfterMagicProp />
+      <SuppressMagicAfterSkipMagicProp />
+      <SuppressSkipMagicAfterSpaceProp />
+    </FieldSet>
+  );
+}
+
+function MagicKeyHighlightingProp() {
+  const { settings, updateSettings } = useSettings();
+  return (
+    <>
+      <FieldList>
+        <Field>
+          <CheckBox
+            label="Enable magic key highlighting"
+            checked={settings.get(textDisplayProps.magicKeyHighlighting)}
+            onChange={(value) => {
+              updateSettings(
+                settings.set(textDisplayProps.magicKeyHighlighting, value),
+              );
+            }}
+          />
+        </Field>
+      </FieldList>
+      <Explainer>
+        <Description>
+          When enabled, characters that should be typed using the magic key
+          (orange) or skip magic key (blue) will be highlighted in the text
+          area.
+        </Description>
+      </Explainer>
+    </>
+  );
+}
+
+function SuppressSkipMagicAfterMagicProp() {
+  const { settings, updateSettings } = useSettings();
+  return (
+    <>
+      <FieldList>
+        <Field>
+          <CheckBox
+            label="Suppress skip magic after magic key"
+            checked={settings.get(textDisplayProps.suppressSkipMagicAfterMagic)}
+            onChange={(value) => {
+              updateSettings(
+                settings.set(
+                  textDisplayProps.suppressSkipMagicAfterMagic,
+                  value,
+                ),
+              );
+            }}
+          />
+        </Field>
+      </FieldList>
+      <Explainer>
+        <Description>
+          When enabled, skip magic highlighting is suppressed if the character
+          two positions back was typed using the magic key. This avoids
+          suggesting skip magic when there is no same-finger skipgram to avoid
+          (e.g., ASSASSIN → AS#AS#IN instead of AS#A$#IN).
+        </Description>
+      </Explainer>
+    </>
+  );
+}
+
+function SuppressMagicAfterSkipMagicProp() {
+  const { settings, updateSettings } = useSettings();
+  return (
+    <>
+      <FieldList>
+        <Field>
+          <CheckBox
+            label="Suppress magic after skip magic key"
+            checked={settings.get(textDisplayProps.suppressMagicAfterSkipMagic)}
+            onChange={(value) => {
+              updateSettings(
+                settings.set(
+                  textDisplayProps.suppressMagicAfterSkipMagic,
+                  value,
+                ),
+              );
+            }}
+          />
+        </Field>
+      </FieldList>
+      <Explainer>
+        <Description>
+          When enabled, magic highlighting is suppressed if the previous
+          character was typed using the skip magic key. This avoids suggesting
+          magic when there is no same-finger bigram to avoid (e.g., NINETEEN →
+          NI$ET$EN instead of NI$ET$#N).
+        </Description>
+      </Explainer>
+    </>
+  );
+}
+
+function SuppressSkipMagicAfterSpaceProp() {
+  const { settings, updateSettings } = useSettings();
+  return (
+    <>
+      <FieldList>
+        <Field>
+          <CheckBox
+            label="Suppress skip magic after space key"
+            checked={settings.get(textDisplayProps.suppressSkipMagicAfterSpace)}
+            onChange={(value) => {
+              updateSettings(
+                settings.set(
+                  textDisplayProps.suppressSkipMagicAfterSpace,
+                  value,
+                ),
+              );
+            }}
+          />
+        </Field>
+      </FieldList>
+      <Explainer>
+        <Description>
+          When enabled, skip magic highlighting is suppressed at the start of a
+          new word (after a space). This allows each word to have consistent
+          finger usage regardless of the previous word, helping build muscle
+          memory per word (e.g., SIT TIE → SIT TIE instead of SIT $IE).
+        </Description>
+      </Explainer>
+    </>
   );
 }

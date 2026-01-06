@@ -89,16 +89,109 @@ function wouldUseMagicKey(
 }
 
 /**
+ * Checks if a character at the given index would be typed using the skip magic key.
+ * This is used to determine if magic should apply - if the character
+ * at index-1 was typed with skip magic, there's no SFB to avoid.
+ *
+ * This function also considers whether skip magic would have been suppressed
+ * due to other options (e.g., if the char at index-2 used magic).
+ */
+function wouldUseSkipMagicKey(
+  chars: readonly { codePoint: number }[],
+  index: number,
+  options: {
+    suppressSkipMagicAfterMagic: boolean;
+    suppressSkipMagicAfterSpace: boolean;
+  },
+): boolean {
+  if (index < 2 || index >= chars.length) {
+    return false;
+  }
+
+  // Check if skip magic would be suppressed due to magic at index-2
+  if (
+    options.suppressSkipMagicAfterMagic &&
+    wouldUseMagicKey(chars, index - 2)
+  ) {
+    return false;
+  }
+
+  // Check if skip magic would be suppressed due to space at index-1
+  if (
+    options.suppressSkipMagicAfterSpace &&
+    chars[index - 1].codePoint === 0x0020
+  ) {
+    return false;
+  }
+
+  const currentChar = String.fromCodePoint(
+    chars[index].codePoint,
+  ).toLowerCase();
+  const secondToLastChar = String.fromCodePoint(
+    chars[index - 2].codePoint,
+  ).toLowerCase();
+
+  // Check if skip magic rule applies
+  const skipMagicOutput = SKIP_MAGIC_RULES.get(secondToLastChar);
+  if (skipMagicOutput === currentChar) {
+    return true;
+  }
+
+  // Check if skip magic repeat applies (same char, no specific skip magic rule)
+  if (
+    secondToLastChar === currentChar &&
+    !SKIP_MAGIC_RULES.has(secondToLastChar)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Options for magic type detection.
+ */
+export type MagicOptions = {
+  /**
+   * When true, skip magic is suppressed if the character at index-2
+   * was typed using the magic key (no SFS to avoid).
+   * Default: true
+   */
+  readonly suppressSkipMagicAfterMagic: boolean;
+  /**
+   * When true, magic is suppressed if the character at index-1
+   * was typed using the skip magic key (no SFB to avoid).
+   * Default: true
+   */
+  readonly suppressMagicAfterSkipMagic: boolean;
+  /**
+   * When true, skip magic is suppressed if the character at index-1
+   * is a space. This prevents skip magic from crossing word boundaries,
+   * allowing consistent muscle memory per word.
+   * Default: false
+   */
+  readonly suppressSkipMagicAfterSpace: boolean;
+};
+
+const defaultMagicOptions: MagicOptions = {
+  suppressSkipMagicAfterMagic: true,
+  suppressMagicAfterSkipMagic: true,
+  suppressSkipMagicAfterSpace: false,
+};
+
+/**
  * Analyzes a character in context to determine if it should be typed
  * using the magic key or skip magic key.
  *
  * @param chars - Array of character code points for the full text
  * @param index - Current character index to analyze
+ * @param options - Options for magic detection behavior
  * @returns The type of magic key to use, or null if none
  */
 export function getMagicType(
   chars: readonly { codePoint: number }[],
   index: number,
+  options: MagicOptions = defaultMagicOptions,
 ): MagicType {
   if (index < 0 || index >= chars.length) {
     return null;
@@ -109,13 +202,23 @@ export function getMagicType(
   ).toLowerCase();
 
   // Check for skip magic (requires at least 2 characters before)
-  // BUT: only if the character at index-2 was NOT typed using magic key.
-  // If it was typed with magic, the actual key pressed was the magic key,
-  // not the letter key, so there's no SFS to avoid.
   if (index >= 2) {
-    const charAtMinus2UsedMagic = wouldUseMagicKey(chars, index - 2);
+    // If suppressSkipMagicAfterMagic is enabled, check if the character
+    // at index-2 was typed using magic key. If so, skip the skip magic check
+    // because there's no SFS to avoid (the actual key pressed was the magic key).
+    const charAtMinus2UsedMagic =
+      options.suppressSkipMagicAfterMagic && wouldUseMagicKey(chars, index - 2);
 
-    if (!charAtMinus2UsedMagic) {
+    // If suppressSkipMagicAfterSpace is enabled, check if the character
+    // at index-1 is a space. This prevents skip magic from crossing word
+    // boundaries, allowing consistent muscle memory per word.
+    const prevCharIsSpace =
+      options.suppressSkipMagicAfterSpace &&
+      chars[index - 1].codePoint === 0x0020;
+
+    const shouldSuppressSkipMagic = charAtMinus2UsedMagic || prevCharIsSpace;
+
+    if (!shouldSuppressSkipMagic) {
       const secondToLastChar = String.fromCodePoint(
         chars[index - 2].codePoint,
       ).toLowerCase();
@@ -137,20 +240,32 @@ export function getMagicType(
 
   // Check for magic key (requires at least 1 character before)
   if (index >= 1) {
-    const lastChar = String.fromCodePoint(
-      chars[index - 1].codePoint,
-    ).toLowerCase();
-    const magicOutput = MAGIC_RULES.get(lastChar);
+    // If suppressMagicAfterSkipMagic is enabled, check if the character
+    // at index-1 was typed using skip magic key. If so, skip the magic check
+    // because there's no SFB to avoid (the actual key pressed was skip magic).
+    const shouldSuppressMagic =
+      options.suppressMagicAfterSkipMagic &&
+      wouldUseSkipMagicKey(chars, index - 1, {
+        suppressSkipMagicAfterMagic: options.suppressSkipMagicAfterMagic,
+        suppressSkipMagicAfterSpace: options.suppressSkipMagicAfterSpace,
+      });
 
-    if (magicOutput === currentChar) {
-      return "magic";
-    }
+    if (!shouldSuppressMagic) {
+      const lastChar = String.fromCodePoint(
+        chars[index - 1].codePoint,
+      ).toLowerCase();
+      const magicOutput = MAGIC_RULES.get(lastChar);
 
-    // Magic key also repeats (e.g., "all" → "al#")
-    // Only suggest repeat if current char equals previous char
-    // and there's no specific magic rule that applies
-    if (lastChar === currentChar && !MAGIC_RULES.has(lastChar)) {
-      return "magic";
+      if (magicOutput === currentChar) {
+        return "magic";
+      }
+
+      // Magic key also repeats (e.g., "all" → "al#")
+      // Only suggest repeat if current char equals previous char
+      // and there's no specific magic rule that applies
+      if (lastChar === currentChar && !MAGIC_RULES.has(lastChar)) {
+        return "magic";
+      }
     }
   }
 

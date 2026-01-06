@@ -57,6 +57,10 @@ export type TextDisplaySettings = {
   readonly whitespaceStyle: WhitespaceStyle;
   readonly language: Language;
   readonly layout: Layout | null;
+  readonly magicKeyHighlighting: boolean;
+  readonly suppressSkipMagicAfterMagic: boolean;
+  readonly suppressMagicAfterSkipMagic: boolean;
+  readonly suppressSkipMagicAfterSpace: boolean;
 };
 
 export enum CaretShapeStyle {
@@ -84,6 +88,10 @@ export const textDisplaySettings = {
   whitespaceStyle: WhitespaceStyle.Bullet,
   language: Language.EN,
   layout: null,
+  magicKeyHighlighting: true,
+  suppressSkipMagicAfterMagic: true,
+  suppressMagicAfterSkipMagic: true,
+  suppressSkipMagicAfterSpace: false,
 } as const satisfies TextDisplaySettings;
 
 export const textDisplayProps = {
@@ -103,12 +111,37 @@ export const textDisplayProps = {
     WhitespaceStyle,
     WhitespaceStyle.Bullet,
   ),
+  magicKeyHighlighting: booleanProp("textDisplay.magicKeyHighlighting", true),
+  suppressSkipMagicAfterMagic: booleanProp(
+    "textDisplay.suppressSkipMagicAfterMagic",
+    true,
+  ),
+  suppressMagicAfterSkipMagic: booleanProp(
+    "textDisplay.suppressMagicAfterSkipMagic",
+    true,
+  ),
+  suppressSkipMagicAfterSpace: booleanProp(
+    "textDisplay.suppressSkipMagicAfterSpace",
+    false,
+  ),
 } as const;
 
 export function toTextDisplaySettings(settings: Settings): TextDisplaySettings {
   const caretShapeStyle = settings.get(textDisplayProps.caretShapeStyle);
   const caretMovementStyle = settings.get(textDisplayProps.caretMovementStyle);
   const whitespaceStyle = settings.get(textDisplayProps.whitespaceStyle);
+  const magicKeyHighlighting = settings.get(
+    textDisplayProps.magicKeyHighlighting,
+  );
+  const suppressSkipMagicAfterMagic = settings.get(
+    textDisplayProps.suppressSkipMagicAfterMagic,
+  );
+  const suppressMagicAfterSkipMagic = settings.get(
+    textDisplayProps.suppressMagicAfterSkipMagic,
+  );
+  const suppressSkipMagicAfterSpace = settings.get(
+    textDisplayProps.suppressSkipMagicAfterSpace,
+  );
   const { language, layout } = KeyboardOptions.from(settings);
   const fonts = Font.select(language);
   const font = Font.find(fonts, settings.get(textDisplayProps.font));
@@ -119,5 +152,9 @@ export function toTextDisplaySettings(settings: Settings): TextDisplaySettings {
     whitespaceStyle,
     language,
     layout,
+    magicKeyHighlighting,
+    suppressSkipMagicAfterMagic,
+    suppressMagicAfterSkipMagic,
+    suppressSkipMagicAfterSpace,
   };
 }
