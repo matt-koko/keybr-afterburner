@@ -30,6 +30,12 @@ export const KeySet = ({
       onMouseOut={(event) => {
         relayEvent(ref.current!, event, onKeyHoverOut);
       }}
+      onMouseDown={(event) => {
+        // Prevent click from stealing focus from TextArea
+        if (onKeyClick) {
+          event.preventDefault();
+        }
+      }}
       onClick={(event) => {
         relayEvent(ref.current!, event, onKeyClick);
       }}

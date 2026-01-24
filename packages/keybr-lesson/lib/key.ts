@@ -148,4 +148,29 @@ export class LessonKeys implements Iterable<LessonKey> {
   find(codePoint: CodePoint): LessonKey | null {
     return this.#keys.get(codePoint) ?? null;
   }
+
+  /**
+   * Apply manual overrides from user settings.
+   * @param excludedKeys Code points to exclude (disable), takes precedence over algorithm.
+   * @param forcedKeys Code points to force include (enable), takes precedence over algorithm.
+   */
+  applyOverrides(
+    excludedKeys: readonly CodePoint[],
+    forcedKeys: readonly CodePoint[],
+  ): void {
+    // First apply forced inclusions
+    for (const codePoint of forcedKeys) {
+      const key = this.#keys.get(codePoint);
+      if (key != null && !key.isIncluded) {
+        this.#keys.set(codePoint, key.asIncluded());
+      }
+    }
+    // Then apply exclusions (exclusions take final precedence)
+    for (const codePoint of excludedKeys) {
+      const key = this.#keys.get(codePoint);
+      if (key != null && key.isIncluded) {
+        this.#keys.set(codePoint, key.asExcluded());
+      }
+    }
+  }
 }

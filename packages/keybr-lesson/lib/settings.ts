@@ -2,6 +2,7 @@ import { Syntax } from "@keybr/code";
 import { Book } from "@keybr/content";
 import {
   booleanProp,
+  codePointSetProp,
   flagsProp,
   itemProp,
   numberProp,
@@ -59,4 +60,8 @@ export const lessonProps = {
   repeatWords: numberProp("lesson.repeatWords", 1, { min: 1, max: 10 }),
   targetSpeed: numberProp("lesson.targetSpeed", 175, { min: 75, max: 750 }),
   dailyGoal: numberProp("lesson.dailyGoal", 30, { min: 0, max: 120 }),
+  /** Manually excluded key code points (user disabled). */
+  excludedKeys: codePointSetProp("lesson.excludedKeys"),
+  /** Manually forced key code points (user enabled). */
+  forcedKeys: codePointSetProp("lesson.forcedKeys"),
 } as const;

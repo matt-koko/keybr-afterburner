@@ -8,6 +8,7 @@ import {
   names,
   StreakListRow,
 } from "@keybr/lesson-ui";
+import { type CodePoint } from "@keybr/unicode";
 import { Popup, Portal } from "@keybr/widget";
 import { memo, type ReactNode, useEffect, useState } from "react";
 import * as styles from "./Indicators.module.less";
@@ -16,8 +17,10 @@ import { type LessonState } from "./state/index.ts";
 
 export const Indicators = memo(function Indicators({
   state: { keyStatsMap, summaryStats, lessonKeys, streakList, dailyGoal },
+  onToggleKey,
 }: {
   readonly state: LessonState;
+  readonly onToggleKey?: (codePoint: CodePoint) => void;
 }): ReactNode {
   type State = Readonly<
     | { type: "hidden" }
@@ -62,6 +65,9 @@ export const Indicators = memo(function Indicators({
               setState({ ...state, type: "visible-out" });
               break;
           }
+        }}
+        onKeyClick={(key) => {
+          onToggleKey?.(key.letter.codePoint);
         }}
       />
       <CurrentKeyRow lessonKeys={lessonKeys} names={names} />

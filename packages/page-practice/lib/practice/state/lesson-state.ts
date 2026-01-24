@@ -61,6 +61,10 @@ export class LessonState {
     this.streakList = progress.streakList.copy();
     this.dailyGoal = progress.dailyGoal.copy();
     this.lessonKeys = this.lesson.update(this.keyStatsMap);
+    // Apply manual key overrides from user settings
+    const excludedKeys = this.settings.get(lessonProps.excludedKeys);
+    const forcedKeys = this.settings.get(lessonProps.forcedKeys);
+    this.lessonKeys.applyOverrides(excludedKeys, forcedKeys);
     this.#reset(this.lesson.generate(this.lessonKeys, Lesson.rng));
   }
 

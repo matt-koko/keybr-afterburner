@@ -9,6 +9,7 @@ import {
   ModifierState,
 } from "@keybr/textinput-events";
 import { TextArea } from "@keybr/textinput-ui";
+import { type CodePoint } from "@keybr/unicode";
 import { type Focusable, Zoomer } from "@keybr/widget";
 import { createRef, PureComponent, type ReactNode } from "react";
 import { Controls } from "./Controls.tsx";
@@ -27,6 +28,7 @@ type Props = {
   readonly onKeyDown: (ev: IKeyboardEvent) => void;
   readonly onKeyUp: (ev: IKeyboardEvent) => void;
   readonly onInput: (ev: IInputEvent) => void;
+  readonly onToggleKey: (codePoint: CodePoint) => void;
 };
 
 type State = {
@@ -74,7 +76,7 @@ export class Presenter extends PureComponent<Props, State> {
 
   override render() {
     const {
-      props: { state, lines, depressedKeys },
+      props: { state, lines, depressedKeys, onToggleKey },
       state: { view, tour, focus },
       handleResetLesson,
       handleSkipLesson,
@@ -120,6 +122,7 @@ export class Presenter extends PureComponent<Props, State> {
               </Zoomer>
             }
             tour={tour && <PracticeTour onClose={handleTourClose} />}
+            onToggleKey={onToggleKey}
           />
         );
       case View.Compact:
@@ -152,6 +155,7 @@ export class Presenter extends PureComponent<Props, State> {
                 />
               </Zoomer>
             }
+            onToggleKey={onToggleKey}
           />
         );
       case View.Bare:
@@ -288,6 +292,7 @@ function NormalLayout({
   controls,
   textInput,
   tour,
+  onToggleKey,
 }: {
   readonly state: LessonState;
   readonly focus: boolean;
@@ -296,10 +301,11 @@ function NormalLayout({
   readonly controls: ReactNode;
   readonly textInput: ReactNode;
   readonly tour: ReactNode;
+  readonly onToggleKey: (codePoint: CodePoint) => void;
 }) {
   return (
     <Screen>
-      <Indicators state={state} />
+      <Indicators state={state} onToggleKey={onToggleKey} />
       <div id={names.textInput} className={styles.textInput_normal}>
         {textInput}
       </div>
@@ -324,16 +330,18 @@ function CompactLayout({
   state,
   controls,
   textInput,
+  onToggleKey,
 }: {
   readonly state: LessonState;
   readonly focus: boolean;
   readonly depressedKeys: readonly string[];
   readonly controls: ReactNode;
   readonly textInput: ReactNode;
+  readonly onToggleKey: (codePoint: CodePoint) => void;
 }) {
   return (
     <Screen>
-      <Indicators state={state} />
+      <Indicators state={state} onToggleKey={onToggleKey} />
       <div id={names.textInput} className={styles.textInput_compact}>
         {textInput}
       </div>

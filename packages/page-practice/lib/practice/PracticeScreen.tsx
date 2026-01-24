@@ -42,7 +42,8 @@ function ProgressUpdater({ lesson }: { readonly lesson: Lesson }) {
 
 function useProgress(lesson: Lesson, results: readonly Result[]) {
   const { settings } = useSettings();
-  const [done, setDone] = useState(false);
+  // Track which progress instance has been seeded (avoids race conditions with boolean flag)
+  const [seededProgress, setSeededProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState({ total: 0, current: 0 });
   const progress = useMemo(
     () => new Progress(settings, lesson),
@@ -55,11 +56,12 @@ function useProgress(lesson: Lesson, results: readonly Result[]) {
     const controller = new AbortController();
     const { signal } = controller;
     schedule(progress.seedAsync(lesson.filter(results), setLoading), { signal })
-      .then(() => setDone(true))
+      .then(() => setSeededProgress(progress))
       .catch(catchError);
     return () => {
       controller.abort();
     };
   }, [progress, lesson, results]);
-  return [done ? progress : null, loading] as const;
+  // Only return progress if the current instance has been seeded
+  return [seededProgress === progress ? progress : null, loading] as const;
 }

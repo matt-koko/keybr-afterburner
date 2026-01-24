@@ -1,15 +1,25 @@
 import { type KeyId, useKeyboard } from "@keybr/keyboard";
+import { lessonProps } from "@keybr/lesson";
 import { type Result } from "@keybr/result";
+import { useSettings } from "@keybr/settings";
 import { type LineList } from "@keybr/textinput";
 import { addKey, deleteKey, emulateLayout } from "@keybr/textinput-events";
 import { makeSoundPlayer } from "@keybr/textinput-sounds";
+import { type CodePoint } from "@keybr/unicode";
 import {
   useDocumentEvent,
   useHotkeys,
   useTimeout,
   useWindowEvent,
 } from "@keybr/widget";
-import { memo, type ReactNode, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  type ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Presenter } from "./Presenter.tsx";
 import {
   type LastLesson,
@@ -25,6 +35,7 @@ export const Controller = memo(function Controller({
   readonly progress: Progress;
   readonly onResult: (result: Result) => void;
 }): ReactNode {
+  const { settings, updateSettings } = useSettings();
   const {
     state,
     handleResetLesson,
@@ -33,6 +44,43 @@ export const Controller = memo(function Controller({
     handleKeyUp,
     handleInput,
   } = useLessonState(progress, onResult);
+
+  const handleToggleKey = useCallback(
+    (codePoint: CodePoint) => {
+      const excludedKeys = settings.get(lessonProps.excludedKeys);
+      const forcedKeys = settings.get(lessonProps.forcedKeys);
+
+      // Find the current key state
+      const key = state.lessonKeys.find(codePoint);
+      if (key == null) return;
+
+      const isExcluded = excludedKeys.includes(codePoint);
+      const isForced = forcedKeys.includes(codePoint);
+
+      let newExcludedKeys = excludedKeys.filter((cp) => cp !== codePoint);
+      let newForcedKeys = forcedKeys.filter((cp) => cp !== codePoint);
+
+      if (key.isIncluded) {
+        // Key is currently included, so exclude it
+        if (!isExcluded) {
+          newExcludedKeys = [...newExcludedKeys, codePoint];
+        }
+      } else {
+        // Key is currently excluded, so force include it
+        if (!isForced) {
+          newForcedKeys = [...newForcedKeys, codePoint];
+        }
+      }
+
+      updateSettings(
+        settings
+          .set(lessonProps.excludedKeys, newExcludedKeys)
+          .set(lessonProps.forcedKeys, newForcedKeys),
+      );
+    },
+    [settings, updateSettings, state.lessonKeys],
+  );
+
   useHotkeys({
     ["Ctrl+ArrowLeft"]: handleResetLesson,
     ["Ctrl+ArrowRight"]: handleSkipLesson,
@@ -51,6 +99,7 @@ export const Controller = memo(function Controller({
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
       onInput={handleInput}
+      onToggleKey={handleToggleKey}
     />
   );
 });

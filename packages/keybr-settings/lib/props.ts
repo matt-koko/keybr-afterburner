@@ -51,6 +51,10 @@ export type FlagsProp = {
 
 export type Flags = readonly string[];
 
+export type CodePointSetProp = {
+  readonly type: "codePointSet";
+} & AnyProp<readonly number[]>;
+
 export function booleanProp(key: string, defaultValue: boolean): BooleanProp {
   return {
     type: "boolean",
@@ -201,6 +205,29 @@ export function flagsProp(
       return typeof value === "string"
         ? value.split(",").filter((v) => all.includes(v))
         : defaultValue0;
+    },
+  };
+}
+
+export function codePointSetProp(
+  key: string,
+  defaultValue: readonly number[] = [],
+): CodePointSetProp {
+  return {
+    type: "codePointSet",
+    key,
+    defaultValue,
+    toJson(value: readonly number[]): unknown {
+      return value.length > 0 ? value.join(",") : null;
+    },
+    fromJson(value: unknown, defaultValue0 = defaultValue): readonly number[] {
+      if (typeof value === "string" && value.length > 0) {
+        return value
+          .split(",")
+          .map((s) => parseInt(s, 10))
+          .filter((n) => !isNaN(n) && n > 0);
+      }
+      return defaultValue0;
     },
   };
 }
