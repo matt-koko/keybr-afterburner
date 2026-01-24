@@ -52,12 +52,22 @@ export function parseOverridePattern(pattern: string): WordOverride {
  * - any letter = no magic (type the letter directly)
  */
 const DEFAULT_WORD_OVERRIDES: ReadonlyMap<string, string> = new Map([
-  // houses: algorithm gives hous$$, override to hous$s
-  ["houses", "hous$s"],
+  // // houses: algorithm gives hous$$, override to hous$s
+  // ["houses", "hous$s"],
   // queue: algorithm gives qu$u#, override to qu$u$
   ["queue", "qu$u$"],
   // institute: algorithm gives insti$u$$, override to institut$
   ["institute", "institut$"],
+  // amusement: algorithm gives amus$m$nt, override to amus$memt
+  ["amusement", "amus$memt"],
+  // // quotation: algorithm gives quot$$ion, override to quot$tion
+  // ["quotation", "quot$tion"],
+  // // queen: algorithm gives qu$$n, override to qu$en
+  // ["queen", "qu$en"],
+  // // gaining: algorithm gives gain$$g, override to gain$ng
+  // ["gaining", "gain$ng"],
+  // // shining: algorithm gives shin$$g, override to shin$ng
+  // ["shining", "shin$ng"],
 ]);
 
 /**
@@ -221,6 +231,7 @@ function wouldUseSkipMagicKey(
   index: number,
   options: {
     suppressSkipMagicAfterMagic: boolean;
+    suppressSkipMagicAfterSkipMagic: boolean;
     suppressSkipMagicAfterSpace: boolean;
   },
 ): boolean {
@@ -232,6 +243,20 @@ function wouldUseSkipMagicKey(
   if (
     options.suppressSkipMagicAfterMagic &&
     wouldUseMagicKey(chars, index - 2)
+  ) {
+    return false;
+  }
+
+  // Check if skip magic would be suppressed due to skip magic at index-1
+  // (recursive check, but with suppressSkipMagicAfterSkipMagic disabled to avoid infinite loop)
+  if (
+    options.suppressSkipMagicAfterSkipMagic &&
+    index >= 3 &&
+    wouldUseSkipMagicKey(chars, index - 1, {
+      suppressSkipMagicAfterMagic: options.suppressSkipMagicAfterMagic,
+      suppressSkipMagicAfterSkipMagic: false, // Prevent infinite recursion
+      suppressSkipMagicAfterSpace: options.suppressSkipMagicAfterSpace,
+    })
   ) {
     return false;
   }
@@ -275,34 +300,37 @@ export type MagicOptions = {
   /**
    * When true, skip magic is suppressed if the character at index-2
    * was typed using the magic key (no SFS to avoid).
-   * Default: true
    */
   readonly suppressSkipMagicAfterMagic: boolean;
   /**
+   * When true, skip magic is suppressed if the character at index-1
+   * was typed using the skip magic key (no SFB to avoid between
+   * consecutive skip magic keypresses).
+   */
+  readonly suppressSkipMagicAfterSkipMagic: boolean;
+  /**
    * When true, magic is suppressed if the character at index-1
    * was typed using the skip magic key (no SFB to avoid).
-   * Default: true
    */
   readonly suppressMagicAfterSkipMagic: boolean;
   /**
    * When true, skip magic is suppressed if the character at index-1
    * is a space. This prevents skip magic from crossing word boundaries,
    * allowing consistent muscle memory per word.
-   * Default: false
    */
   readonly suppressSkipMagicAfterSpace: boolean;
   /**
    * When true, uses word-specific overrides for magic key highlighting
-   * where the default algorithm produces suboptimal results.
-   * Default: true
+   * where the user's preferences override the default algorithm.
    */
   readonly magicKeyWordOverridesEnabled: boolean;
 };
 
 const defaultMagicOptions: MagicOptions = {
   suppressSkipMagicAfterMagic: true,
+  suppressSkipMagicAfterSkipMagic: true,
   suppressMagicAfterSkipMagic: true,
-  suppressSkipMagicAfterSpace: false,
+  suppressSkipMagicAfterSpace: true,
   magicKeyWordOverridesEnabled: true,
 };
 
@@ -351,6 +379,18 @@ export function getMagicType(
     const charAtMinus2UsedMagic =
       options.suppressSkipMagicAfterMagic && wouldUseMagicKey(chars, index - 2);
 
+    // If suppressSkipMagicAfterSkipMagic is enabled, check if the character
+    // at index-1 was typed using skip magic key. If so, skip the skip magic check
+    // because there would be an SFB between consecutive skip magic keypresses.
+    const charAtMinus1UsedSkipMagic =
+      options.suppressSkipMagicAfterSkipMagic &&
+      index >= 3 &&
+      wouldUseSkipMagicKey(chars, index - 1, {
+        suppressSkipMagicAfterMagic: options.suppressSkipMagicAfterMagic,
+        suppressSkipMagicAfterSkipMagic: false, // Prevent infinite recursion
+        suppressSkipMagicAfterSpace: options.suppressSkipMagicAfterSpace,
+      });
+
     // If suppressSkipMagicAfterSpace is enabled, check if the character
     // at index-1 is a space. This prevents skip magic from crossing word
     // boundaries, allowing consistent muscle memory per word.
@@ -358,7 +398,8 @@ export function getMagicType(
       options.suppressSkipMagicAfterSpace &&
       chars[index - 1].codePoint === 0x0020;
 
-    const shouldSuppressSkipMagic = charAtMinus2UsedMagic || prevCharIsSpace;
+    const shouldSuppressSkipMagic =
+      charAtMinus2UsedMagic || charAtMinus1UsedSkipMagic || prevCharIsSpace;
 
     if (!shouldSuppressSkipMagic) {
       const secondToLastChar = String.fromCodePoint(
@@ -389,6 +430,8 @@ export function getMagicType(
       options.suppressMagicAfterSkipMagic &&
       wouldUseSkipMagicKey(chars, index - 1, {
         suppressSkipMagicAfterMagic: options.suppressSkipMagicAfterMagic,
+        suppressSkipMagicAfterSkipMagic:
+          options.suppressSkipMagicAfterSkipMagic,
         suppressSkipMagicAfterSpace: options.suppressSkipMagicAfterSpace,
       });
 

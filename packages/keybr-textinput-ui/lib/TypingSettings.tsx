@@ -614,6 +614,7 @@ function AfterburnerSettings() {
       <MagicKeyHighlightingProp />
       <MagicKeyWordOverridesProp />
       <SuppressSkipMagicAfterMagicProp />
+      <SuppressSkipMagicAfterSkipMagicProp />
       <SuppressMagicAfterSkipMagicProp />
       <SuppressSkipMagicAfterSpaceProp />
     </FieldSet>
@@ -713,6 +714,40 @@ function SuppressSkipMagicAfterMagicProp() {
           two positions back was typed using the magic key. This avoids
           suggesting skip magic when there is no same-finger skipgram to avoid
           (e.g., ASSASSIN → AS#AS#IN instead of AS#A$#IN).
+        </Description>
+      </Explainer>
+    </>
+  );
+}
+
+function SuppressSkipMagicAfterSkipMagicProp() {
+  const { settings, updateSettings } = useSettings();
+  return (
+    <>
+      <FieldList>
+        <Field>
+          <CheckBox
+            label="Suppress skip magic after skip magic key"
+            checked={settings.get(
+              textDisplayProps.suppressSkipMagicAfterSkipMagic,
+            )}
+            onChange={(value) => {
+              updateSettings(
+                settings.set(
+                  textDisplayProps.suppressSkipMagicAfterSkipMagic,
+                  value,
+                ),
+              );
+            }}
+          />
+        </Field>
+      </FieldList>
+      <Explainer>
+        <Description>
+          When enabled, skip magic highlighting is suppressed if the previous
+          character was typed using the skip magic key. This avoids suggesting
+          consecutive skip magic keypresses which would cause a same-finger
+          bigram (e.g., QUEEN → QU$EN instead of QU$$N).
         </Description>
       </Explainer>
     </>

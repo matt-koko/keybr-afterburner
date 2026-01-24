@@ -50,6 +50,7 @@ function getMagicStyle(
   const globalIndex = magicContext.offset + localIndex;
   const magicType = getMagicType(magicContext.contextChars, globalIndex, {
     suppressSkipMagicAfterMagic: settings.suppressSkipMagicAfterMagic,
+    suppressSkipMagicAfterSkipMagic: settings.suppressSkipMagicAfterSkipMagic,
     suppressMagicAfterSkipMagic: settings.suppressMagicAfterSkipMagic,
     suppressSkipMagicAfterSpace: settings.suppressSkipMagicAfterSpace,
     magicKeyWordOverridesEnabled: settings.magicKeyWordOverridesEnabled,

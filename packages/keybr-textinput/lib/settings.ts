@@ -59,6 +59,7 @@ export type TextDisplaySettings = {
   readonly layout: Layout | null;
   readonly magicKeyHighlighting: boolean;
   readonly suppressSkipMagicAfterMagic: boolean;
+  readonly suppressSkipMagicAfterSkipMagic: boolean;
   readonly suppressMagicAfterSkipMagic: boolean;
   readonly suppressSkipMagicAfterSpace: boolean;
   readonly magicKeyWordOverridesEnabled: boolean;
@@ -91,6 +92,7 @@ export const textDisplaySettings = {
   layout: null,
   magicKeyHighlighting: true,
   suppressSkipMagicAfterMagic: true,
+  suppressSkipMagicAfterSkipMagic: true,
   suppressMagicAfterSkipMagic: true,
   suppressSkipMagicAfterSpace: false,
   magicKeyWordOverridesEnabled: true,
@@ -118,6 +120,10 @@ export const textDisplayProps = {
     "textDisplay.suppressSkipMagicAfterMagic",
     true,
   ),
+  suppressSkipMagicAfterSkipMagic: booleanProp(
+    "textDisplay.suppressSkipMagicAfterSkipMagic",
+    true,
+  ),
   suppressMagicAfterSkipMagic: booleanProp(
     "textDisplay.suppressMagicAfterSkipMagic",
     true,
@@ -142,6 +148,9 @@ export function toTextDisplaySettings(settings: Settings): TextDisplaySettings {
   const suppressSkipMagicAfterMagic = settings.get(
     textDisplayProps.suppressSkipMagicAfterMagic,
   );
+  const suppressSkipMagicAfterSkipMagic = settings.get(
+    textDisplayProps.suppressSkipMagicAfterSkipMagic,
+  );
   const suppressMagicAfterSkipMagic = settings.get(
     textDisplayProps.suppressMagicAfterSkipMagic,
   );
@@ -163,6 +172,7 @@ export function toTextDisplaySettings(settings: Settings): TextDisplaySettings {
     layout,
     magicKeyHighlighting,
     suppressSkipMagicAfterMagic,
+    suppressSkipMagicAfterSkipMagic,
     suppressMagicAfterSkipMagic,
     suppressSkipMagicAfterSpace,
     magicKeyWordOverridesEnabled,
