@@ -35,12 +35,8 @@ export function Template({
       <nav className={styles.nav}>
         <NavMenu currentPath={path} />
       </nav>
-      <div className={styles.topbar}>
-        <AdBanner name="BANNER_970X90_1" />
-      </div>
-      <div className={styles.sidebar}>
-        <AdBanner name="BANNER_160X600_1" />
-      </div>
+      <div className={styles.topbar}></div>
+      <div className={styles.sidebar}></div>
       <EnvName />
     </div>
   );
