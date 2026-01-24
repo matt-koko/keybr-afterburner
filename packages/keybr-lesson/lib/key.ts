@@ -153,10 +153,12 @@ export class LessonKeys implements Iterable<LessonKey> {
    * Apply manual overrides from user settings.
    * @param excludedKeys Code points to exclude (disable), takes precedence over algorithm.
    * @param forcedKeys Code points to force include (enable), takes precedence over algorithm.
+   * @param focusedKey Code point to set as focused (current key), or 0 for no override.
    */
   applyOverrides(
     excludedKeys: readonly CodePoint[],
     forcedKeys: readonly CodePoint[],
+    focusedKey: CodePoint = 0,
   ): void {
     // First apply forced inclusions
     for (const codePoint of forcedKeys) {
@@ -170,6 +172,20 @@ export class LessonKeys implements Iterable<LessonKey> {
       const key = this.#keys.get(codePoint);
       if (key != null && key.isIncluded) {
         this.#keys.set(codePoint, key.asExcluded());
+      }
+    }
+    // Apply focused key override (only if key exists and is included)
+    if (focusedKey > 0) {
+      // First, clear any existing focused key
+      for (const [cp, key] of this.#keys) {
+        if (key.isFocused) {
+          this.#keys.set(cp, new LessonKey({ ...key, isFocused: false }));
+        }
+      }
+      // Then set the new focused key
+      const key = this.#keys.get(focusedKey);
+      if (key != null && key.isIncluded) {
+        this.#keys.set(focusedKey, key.asFocused());
       }
     }
   }

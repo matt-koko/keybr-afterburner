@@ -81,6 +81,18 @@ export const Controller = memo(function Controller({
     [settings, updateSettings, state.lessonKeys],
   );
 
+  const handleSetFocusedKey = useCallback(
+    (codePoint: CodePoint) => {
+      const currentFocusedKey = settings.get(lessonProps.focusedKey);
+
+      // Toggle: if already focused, clear it; otherwise set it
+      const newFocusedKey = currentFocusedKey === codePoint ? 0 : codePoint;
+
+      updateSettings(settings.set(lessonProps.focusedKey, newFocusedKey));
+    },
+    [settings, updateSettings],
+  );
+
   useHotkeys({
     ["Ctrl+ArrowLeft"]: handleResetLesson,
     ["Ctrl+ArrowRight"]: handleSkipLesson,
@@ -100,6 +112,7 @@ export const Controller = memo(function Controller({
       onKeyUp={handleKeyUp}
       onInput={handleInput}
       onToggleKey={handleToggleKey}
+      onSetFocusedKey={handleSetFocusedKey}
     />
   );
 });

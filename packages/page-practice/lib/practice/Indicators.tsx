@@ -18,9 +18,11 @@ import { type LessonState } from "./state/index.ts";
 export const Indicators = memo(function Indicators({
   state: { keyStatsMap, summaryStats, lessonKeys, streakList, dailyGoal },
   onToggleKey,
+  onSetFocusedKey,
 }: {
   readonly state: LessonState;
   readonly onToggleKey?: (codePoint: CodePoint) => void;
+  readonly onSetFocusedKey?: (codePoint: CodePoint) => void;
 }): ReactNode {
   type State = Readonly<
     | { type: "hidden" }
@@ -68,6 +70,9 @@ export const Indicators = memo(function Indicators({
         }}
         onKeyClick={(key) => {
           onToggleKey?.(key.letter.codePoint);
+        }}
+        onKeySetFocused={(key) => {
+          onSetFocusedKey?.(key.letter.codePoint);
         }}
       />
       <CurrentKeyRow lessonKeys={lessonKeys} names={names} />

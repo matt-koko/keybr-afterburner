@@ -64,7 +64,8 @@ export class LessonState {
     // Apply manual key overrides from user settings
     const excludedKeys = this.settings.get(lessonProps.excludedKeys);
     const forcedKeys = this.settings.get(lessonProps.forcedKeys);
-    this.lessonKeys.applyOverrides(excludedKeys, forcedKeys);
+    const focusedKey = this.settings.get(lessonProps.focusedKey);
+    this.lessonKeys.applyOverrides(excludedKeys, forcedKeys, focusedKey);
     this.#reset(this.lesson.generate(this.lessonKeys, Lesson.rng));
   }
 

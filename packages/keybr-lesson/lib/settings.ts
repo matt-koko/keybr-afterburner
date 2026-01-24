@@ -64,4 +64,6 @@ export const lessonProps = {
   excludedKeys: codePointSetProp("lesson.excludedKeys"),
   /** Manually forced key code points (user enabled). */
   forcedKeys: codePointSetProp("lesson.forcedKeys"),
+  /** Manually focused key code point (current key override). 0 means no override. */
+  focusedKey: numberProp("lesson.focusedKey", 0, { min: 0 }),
 } as const;

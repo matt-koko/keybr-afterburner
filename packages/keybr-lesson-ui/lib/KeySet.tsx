@@ -10,6 +10,7 @@ export const KeySet = ({
   onKeyHoverIn,
   onKeyHoverOut,
   onKeyClick,
+  onKeySetFocused,
 }: {
   id?: string;
   className?: ClassName;
@@ -17,6 +18,7 @@ export const KeySet = ({
   onKeyHoverIn?: (key: LessonKey, elem: Element) => void;
   onKeyHoverOut?: (key: LessonKey, elem: Element) => void;
   onKeyClick?: (key: LessonKey, elem: Element) => void;
+  onKeySetFocused?: (key: LessonKey, elem: Element) => void;
 }) => {
   const ref = useRef<HTMLElement>(null);
   return (
@@ -32,12 +34,17 @@ export const KeySet = ({
       }}
       onMouseDown={(event) => {
         // Prevent click from stealing focus from TextArea
-        if (onKeyClick) {
+        if (onKeyClick || onKeySetFocused) {
           event.preventDefault();
         }
       }}
       onClick={(event) => {
-        relayEvent(ref.current!, event, onKeyClick);
+        // Shift+Click = set as focused/current key
+        if (event.shiftKey && onKeySetFocused) {
+          relayEvent(ref.current!, event, onKeySetFocused);
+        } else {
+          relayEvent(ref.current!, event, onKeyClick);
+        }
       }}
     >
       {[...lessonKeys].map((lessonKey) => (
