@@ -1,3 +1,14 @@
+
+# Fork Notes
+
+## Key Set Row
+- Click keys in "All keys" row to enable/disable them.
+- Shift click key in "All keys" row to set it as the current key.
+- Option click key in "All keys" row to show details popup.
+
+--------------------------------
+
+
 [![CI](https://github.com/aradzie/keybr.com/actions/workflows/ci.yml/badge.svg)](https://github.com/aradzie/keybr.com/actions/workflows/ci.yml)
 
 # [keybr.com](https://www.keybr.com/) is not (just) a typing test
