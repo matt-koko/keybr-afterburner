@@ -1,4 +1,3 @@
-import { Tasks } from "@keybr/lang";
 import { type LessonKey } from "@keybr/lesson";
 import {
   CurrentKeyRow,
@@ -10,7 +9,7 @@ import {
 } from "@keybr/lesson-ui";
 import { type CodePoint } from "@keybr/unicode";
 import { Popup, Portal } from "@keybr/widget";
-import { memo, type ReactNode, useEffect, useState } from "react";
+import { memo, type ReactNode, useCallback, useEffect, useState } from "react";
 import * as styles from "./Indicators.module.less";
 import { KeyExtendedDetails } from "./KeyExtendedDetails.tsx";
 import { type LessonState } from "./state/index.ts";
@@ -24,55 +23,53 @@ export const Indicators = memo(function Indicators({
   readonly onToggleKey?: (codePoint: CodePoint) => void;
   readonly onSetFocusedKey?: (codePoint: CodePoint) => void;
 }): ReactNode {
-  type State = Readonly<
-    | { type: "hidden" }
-    | { type: "visible-in"; key: LessonKey; elem: Element }
-    | { type: "visible"; key: LessonKey; elem: Element }
-    | { type: "visible-out"; key: LessonKey; elem: Element }
+  type PopupState = Readonly<
+    { type: "hidden" } | { type: "visible"; key: LessonKey; elem: Element }
   >;
-  const [state, setState] = useState<State>({ type: "hidden" });
+  const [popupState, setPopupState] = useState<PopupState>({ type: "hidden" });
+
+  // Close popup when clicking outside
+  const handleClickOutside = useCallback(() => {
+    setPopupState({ type: "hidden" });
+  }, []);
+
   useEffect(() => {
-    const tasks = new Tasks();
-    switch (state.type) {
-      case "visible-in":
-        tasks.delayed(300, () => {
-          setState({ ...state, type: "visible" });
-        });
-        break;
-      case "visible-out":
-        tasks.delayed(300, () => {
-          setState({ type: "hidden" });
-        });
-        break;
+    if (popupState.type !== "visible") {
+      return;
     }
-    return () => {
-      tasks.cancelAll();
+    // Add click listener to close popup when clicking outside
+    const handleClick = () => {
+      handleClickOutside();
     };
-  }, [state]);
+    // Delay adding the listener to avoid immediate close from the opening click
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("click", handleClick);
+    }, 0);
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("click", handleClick);
+    };
+  }, [popupState.type, handleClickOutside]);
+
   return (
     <div id={names.indicators} className={styles.indicators}>
       <GaugeRow summaryStats={summaryStats} names={names} />
       <KeySetRow
         lessonKeys={lessonKeys}
         names={names}
-        onKeyHoverIn={(key, elem) => {
-          setState({ type: "visible-in", key, elem });
-        }}
-        onKeyHoverOut={() => {
-          switch (state.type) {
-            case "visible-in":
-              setState({ type: "hidden" });
-              break;
-            case "visible":
-              setState({ ...state, type: "visible-out" });
-              break;
-          }
-        }}
         onKeyClick={(key) => {
           onToggleKey?.(key.letter.codePoint);
         }}
         onKeySetFocused={(key) => {
           onSetFocusedKey?.(key.letter.codePoint);
+        }}
+        onKeyShowDetails={(key: LessonKey, elem: Element) => {
+          // Toggle popup: if already showing this key, hide it; otherwise show it
+          if (popupState.type === "visible" && popupState.key === key) {
+            setPopupState({ type: "hidden" });
+          } else {
+            setPopupState({ type: "visible", key, elem });
+          }
         }}
       />
       <CurrentKeyRow lessonKeys={lessonKeys} names={names} />
@@ -80,20 +77,12 @@ export const Indicators = memo(function Indicators({
       {dailyGoal.goal > 0 && (
         <DailyGoalRow dailyGoal={dailyGoal} names={names} />
       )}
-      {(state.type === "visible" || state.type === "visible-out") && (
+      {popupState.type === "visible" && (
         <Portal>
-          <Popup
-            anchor={state.elem}
-            onMouseEnter={() => {
-              setState({ ...state, type: "visible" });
-            }}
-            onMouseLeave={() => {
-              setState({ ...state, type: "visible-out" });
-            }}
-          >
+          <Popup anchor={popupState.elem} onClick={(e) => e.stopPropagation()}>
             <KeyExtendedDetails
-              lessonKey={state.key}
-              keyStats={keyStatsMap.get(state.key.letter)}
+              lessonKey={popupState.key}
+              keyStats={keyStatsMap.get(popupState.key.letter)}
             />
           </Popup>
         </Portal>

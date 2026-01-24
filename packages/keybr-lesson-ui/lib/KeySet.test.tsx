@@ -53,13 +53,7 @@ test("render", async () => {
       <FakeSettingsContext>
         <KeySet
           lessonKeys={lessonKeys}
-          onKeyHoverIn={(key) => {
-            events.push(`hover in ${key.letter}`);
-          }}
-          onKeyHoverOut={(key) => {
-            events.push(`hover out ${key.letter}`);
-          }}
-          onKeyClick={(key) => {
+          onKeyClick={(key: LessonKey) => {
             events.push(`click ${key.letter}`);
           }}
         />
@@ -72,16 +66,8 @@ test("render", async () => {
   isNotNull(r.queryByText("C"));
 
   events.length = 0;
-  await userEvent.hover(r.getByText("A"));
-  deepEqual(events, ["hover in A"]);
-
-  events.length = 0;
-  await userEvent.unhover(r.getByText("A"));
-  deepEqual(events, ["hover out A"]);
-
-  events.length = 0;
   await userEvent.click(r.getByText("A"));
-  deepEqual(events, ["hover in A", "click A"]);
+  deepEqual(events, ["click A"]);
 
   r.unmount();
 });

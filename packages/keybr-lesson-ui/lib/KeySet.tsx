@@ -7,18 +7,16 @@ export const KeySet = ({
   id,
   className,
   lessonKeys,
-  onKeyHoverIn,
-  onKeyHoverOut,
   onKeyClick,
   onKeySetFocused,
+  onKeyShowDetails,
 }: {
   id?: string;
   className?: ClassName;
   lessonKeys: LessonKeys;
-  onKeyHoverIn?: (key: LessonKey, elem: Element) => void;
-  onKeyHoverOut?: (key: LessonKey, elem: Element) => void;
   onKeyClick?: (key: LessonKey, elem: Element) => void;
   onKeySetFocused?: (key: LessonKey, elem: Element) => void;
+  onKeyShowDetails?: (key: LessonKey, elem: Element) => void;
 }) => {
   const ref = useRef<HTMLElement>(null);
   return (
@@ -26,23 +24,23 @@ export const KeySet = ({
       ref={ref}
       id={id}
       className={className}
-      onMouseOver={(event) => {
-        relayEvent(ref.current!, event, onKeyHoverIn);
-      }}
-      onMouseOut={(event) => {
-        relayEvent(ref.current!, event, onKeyHoverOut);
-      }}
       onMouseDown={(event) => {
         // Prevent click from stealing focus from TextArea
-        if (onKeyClick || onKeySetFocused) {
+        if (onKeyClick || onKeySetFocused || onKeyShowDetails) {
           event.preventDefault();
         }
       }}
       onClick={(event) => {
+        // Alt+Click (Option+Click on Mac) = show details popup
+        if (event.altKey && onKeyShowDetails) {
+          relayEvent(ref.current!, event, onKeyShowDetails);
+        }
         // Shift+Click = set as focused/current key
-        if (event.shiftKey && onKeySetFocused) {
+        else if (event.shiftKey && onKeySetFocused) {
           relayEvent(ref.current!, event, onKeySetFocused);
-        } else {
+        }
+        // Click = toggle enable/disable
+        else {
           relayEvent(ref.current!, event, onKeyClick);
         }
       }}

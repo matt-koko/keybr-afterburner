@@ -43,17 +43,15 @@ export const GaugeRow = memo(function GaugeRow({
 export const KeySetRow = memo(function KeySetRow({
   lessonKeys,
   names,
-  onKeyHoverIn,
-  onKeyHoverOut,
   onKeyClick,
   onKeySetFocused,
+  onKeyShowDetails,
 }: {
   lessonKeys: LessonKeys;
   names?: Names;
-  onKeyHoverIn?: (key: LessonKey, elem: Element) => void;
-  onKeyHoverOut?: (key: LessonKey, elem: Element) => void;
   onKeyClick?: (key: LessonKey, elem: Element) => void;
   onKeySetFocused?: (key: LessonKey, elem: Element) => void;
+  onKeyShowDetails?: (key: LessonKey, elem: Element) => void;
 }) {
   const { formatMessage } = useIntl();
   return (
@@ -69,10 +67,9 @@ export const KeySetRow = memo(function KeySetRow({
         id={names?.keySet}
         className={styles.value}
         lessonKeys={lessonKeys}
-        onKeyHoverIn={onKeyHoverIn}
-        onKeyHoverOut={onKeyHoverOut}
         onKeyClick={onKeyClick}
         onKeySetFocused={onKeySetFocused}
+        onKeyShowDetails={onKeyShowDetails}
       />
     </div>
   );
