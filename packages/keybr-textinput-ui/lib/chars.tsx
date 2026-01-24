@@ -52,6 +52,7 @@ function getMagicStyle(
     suppressSkipMagicAfterMagic: settings.suppressSkipMagicAfterMagic,
     suppressMagicAfterSkipMagic: settings.suppressMagicAfterSkipMagic,
     suppressSkipMagicAfterSpace: settings.suppressSkipMagicAfterSpace,
+    magicKeyWordOverridesEnabled: settings.magicKeyWordOverridesEnabled,
   });
 
   if (magicType === "magic") {

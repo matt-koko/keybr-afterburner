@@ -612,6 +612,7 @@ function AfterburnerSettings() {
         </Description>
       </Explainer>
       <MagicKeyHighlightingProp />
+      <MagicKeyWordOverridesProp />
       <SuppressSkipMagicAfterMagicProp />
       <SuppressMagicAfterSkipMagicProp />
       <SuppressSkipMagicAfterSpaceProp />
@@ -641,6 +642,45 @@ function MagicKeyHighlightingProp() {
           When enabled, characters that should be typed using the magic key
           (orange) or skip magic key (blue) will be highlighted in the text
           area.
+        </Description>
+      </Explainer>
+    </>
+  );
+}
+
+function MagicKeyWordOverridesProp() {
+  const { settings, updateSettings } = useSettings();
+  return (
+    <>
+      <FieldList>
+        <Field>
+          <CheckBox
+            label="Enable word-specific highlighting overrides"
+            checked={settings.get(
+              textDisplayProps.magicKeyWordOverridesEnabled,
+            )}
+            onChange={(value) => {
+              updateSettings(
+                settings.set(
+                  textDisplayProps.magicKeyWordOverridesEnabled,
+                  value,
+                ),
+              );
+            }}
+          />
+        </Field>
+      </FieldList>
+      <Explainer>
+        <Description>
+          When enabled, uses custom highlighting patterns for specific words
+          where the default algorithm produces suboptimal results. For example:
+          <br />
+          houses - hous$s
+          <br />
+          queue - qu$u$
+          <br />
+          institute - institut$
+          <br />
         </Description>
       </Explainer>
     </>

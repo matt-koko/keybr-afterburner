@@ -61,6 +61,7 @@ export type TextDisplaySettings = {
   readonly suppressSkipMagicAfterMagic: boolean;
   readonly suppressMagicAfterSkipMagic: boolean;
   readonly suppressSkipMagicAfterSpace: boolean;
+  readonly magicKeyWordOverridesEnabled: boolean;
 };
 
 export enum CaretShapeStyle {
@@ -92,6 +93,7 @@ export const textDisplaySettings = {
   suppressSkipMagicAfterMagic: true,
   suppressMagicAfterSkipMagic: true,
   suppressSkipMagicAfterSpace: false,
+  magicKeyWordOverridesEnabled: true,
 } as const satisfies TextDisplaySettings;
 
 export const textDisplayProps = {
@@ -124,6 +126,10 @@ export const textDisplayProps = {
     "textDisplay.suppressSkipMagicAfterSpace",
     false,
   ),
+  magicKeyWordOverridesEnabled: booleanProp(
+    "textDisplay.magicKeyWordOverridesEnabled",
+    true,
+  ),
 } as const;
 
 export function toTextDisplaySettings(settings: Settings): TextDisplaySettings {
@@ -142,6 +148,9 @@ export function toTextDisplaySettings(settings: Settings): TextDisplaySettings {
   const suppressSkipMagicAfterSpace = settings.get(
     textDisplayProps.suppressSkipMagicAfterSpace,
   );
+  const magicKeyWordOverridesEnabled = settings.get(
+    textDisplayProps.magicKeyWordOverridesEnabled,
+  );
   const { language, layout } = KeyboardOptions.from(settings);
   const fonts = Font.select(language);
   const font = Font.find(fonts, settings.get(textDisplayProps.font));
@@ -156,5 +165,6 @@ export function toTextDisplaySettings(settings: Settings): TextDisplaySettings {
     suppressSkipMagicAfterMagic,
     suppressMagicAfterSkipMagic,
     suppressSkipMagicAfterSpace,
+    magicKeyWordOverridesEnabled,
   };
 }

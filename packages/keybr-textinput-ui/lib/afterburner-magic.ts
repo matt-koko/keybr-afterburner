@@ -11,6 +11,126 @@
 export type MagicType = "magic" | "skipMagic" | null;
 
 /**
+ * Word override entry: specifies the magic type for each character position.
+ * null means use default algorithm, "magic" or "skipMagic" forces that type.
+ */
+export type WordOverride = readonly (MagicType | undefined)[];
+
+/**
+ * Parses a word override pattern string into a WordOverride array.
+ *
+ * Pattern syntax:
+ * - Regular letters represent "no magic" (null)
+ * - # represents magic key
+ * - $ represents skip magic key
+ *
+ * @example
+ * parseOverridePattern("hous$s") // houses: [null, null, null, null, "skipMagic", null]
+ * parseOverridePattern("qu$u$")  // queue: [null, null, "skipMagic", null, "skipMagic"]
+ */
+export function parseOverridePattern(pattern: string): WordOverride {
+  const result: (MagicType | undefined)[] = [];
+  for (const char of pattern) {
+    if (char === "#") {
+      result.push("magic");
+    } else if (char === "$") {
+      result.push("skipMagic");
+    } else {
+      result.push(null);
+    }
+  }
+  return result;
+}
+
+/**
+ * Default word overrides for common words where the algorithm produces
+ * suboptimal results. Users can enable/disable this via settings.
+ *
+ * Format: word (lowercase) -> pattern string
+ * - # = magic key
+ * - $ = skip magic key
+ * - any letter = no magic (type the letter directly)
+ */
+const DEFAULT_WORD_OVERRIDES: ReadonlyMap<string, string> = new Map([
+  // houses: algorithm gives hous$$, override to hous$s
+  ["houses", "hous$s"],
+  // queue: algorithm gives qu$u#, override to qu$u$
+  ["queue", "qu$u$"],
+  // institute: algorithm gives insti$u$$, override to institut$
+  ["institute", "institut$"],
+]);
+
+/**
+ * Parsed word overrides cache (computed once from DEFAULT_WORD_OVERRIDES).
+ */
+const PARSED_WORD_OVERRIDES: ReadonlyMap<string, WordOverride> = new Map(
+  Array.from(DEFAULT_WORD_OVERRIDES.entries()).map(([word, pattern]) => [
+    word,
+    parseOverridePattern(pattern),
+  ]),
+);
+
+/**
+ * Gets the word override for a given word, if one exists.
+ */
+export function getWordOverride(word: string): WordOverride | undefined {
+  return PARSED_WORD_OVERRIDES.get(word.toLowerCase());
+}
+
+/**
+ * Extracts the word containing the character at the given index.
+ * Returns the word (lowercase) and the character's position within it.
+ */
+function extractWord(
+  chars: readonly { codePoint: number }[],
+  index: number,
+): { word: string; positionInWord: number } | null {
+  if (index < 0 || index >= chars.length) {
+    return null;
+  }
+
+  // Find word start (scan backwards until whitespace or start)
+  let wordStart = index;
+  while (wordStart > 0) {
+    const prevCodePoint = chars[wordStart - 1].codePoint;
+    // Stop at whitespace (space, tab, newline)
+    if (
+      prevCodePoint === 0x0020 ||
+      prevCodePoint === 0x0009 ||
+      prevCodePoint === 0x000a
+    ) {
+      break;
+    }
+    wordStart--;
+  }
+
+  // Find word end (scan forwards until whitespace or end)
+  let wordEnd = index;
+  while (wordEnd < chars.length - 1) {
+    const nextCodePoint = chars[wordEnd + 1].codePoint;
+    // Stop at whitespace
+    if (
+      nextCodePoint === 0x0020 ||
+      nextCodePoint === 0x0009 ||
+      nextCodePoint === 0x000a
+    ) {
+      break;
+    }
+    wordEnd++;
+  }
+
+  // Build the word string
+  const wordChars: string[] = [];
+  for (let i = wordStart; i <= wordEnd; i++) {
+    wordChars.push(String.fromCodePoint(chars[i].codePoint));
+  }
+  const word = wordChars.join("").toLowerCase();
+  const positionInWord = index - wordStart;
+
+  return { word, positionInWord };
+}
+
+/**
  * Magic key rules: after pressing key X, the magic key outputs Y.
  * Map from trigger character (lowercase) to output character.
  */
@@ -171,12 +291,19 @@ export type MagicOptions = {
    * Default: false
    */
   readonly suppressSkipMagicAfterSpace: boolean;
+  /**
+   * When true, uses word-specific overrides for magic key highlighting
+   * where the default algorithm produces suboptimal results.
+   * Default: true
+   */
+  readonly magicKeyWordOverridesEnabled: boolean;
 };
 
 const defaultMagicOptions: MagicOptions = {
   suppressSkipMagicAfterMagic: true,
   suppressMagicAfterSkipMagic: true,
   suppressSkipMagicAfterSpace: false,
+  magicKeyWordOverridesEnabled: true,
 };
 
 /**
@@ -195,6 +322,21 @@ export function getMagicType(
 ): MagicType {
   if (index < 0 || index >= chars.length) {
     return null;
+  }
+
+  // Check for word-specific overrides first
+  if (options.magicKeyWordOverridesEnabled) {
+    const wordInfo = extractWord(chars, index);
+    if (wordInfo) {
+      const override = getWordOverride(wordInfo.word);
+      if (override && wordInfo.positionInWord < override.length) {
+        const overrideValue = override[wordInfo.positionInWord];
+        // undefined means "use default algorithm", null/magic/skipMagic are explicit values
+        if (overrideValue !== undefined) {
+          return overrideValue;
+        }
+      }
+    }
   }
 
   const currentChar = String.fromCodePoint(
