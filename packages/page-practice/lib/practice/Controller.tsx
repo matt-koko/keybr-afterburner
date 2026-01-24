@@ -61,6 +61,12 @@ export const Controller = memo(function Controller({
       let newForcedKeys = forcedKeys.filter((cp) => cp !== codePoint);
 
       if (key.isIncluded) {
+        // Prevent disabling the last included key
+        const includedKeys = state.lessonKeys.findIncludedKeys();
+        if (includedKeys.length <= 1) {
+          // Can't disable the last key - would crash the lesson generator
+          return;
+        }
         // Key is currently included, so exclude it
         if (!isExcluded) {
           newExcludedKeys = [...newExcludedKeys, codePoint];
