@@ -24,6 +24,16 @@ npm run build-dev
 ./packages/devenv/lib/initdb.ts
 ```
 
+## Generate layout typescript files
+
+```bash
+npm run generate-layouts -w @keybr/generators
+```
+
+This will generate the typescript files for the layouts in the `packages/keybr-generators/layouts` directory.
+
+Ensure layouts are loaded in `packages/keybr-keyboard/lib/load.ts`.
+
 ## Configuration
 
 Create a `.env` file in the project root:
