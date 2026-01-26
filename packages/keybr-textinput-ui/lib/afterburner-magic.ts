@@ -58,16 +58,18 @@ const DEFAULT_WORD_OVERRIDES: ReadonlyMap<string, string> = new Map([
   ["queue", "qu$u$"],
   // institute: algorithm gives insti$u$$, override to institut$
   ["institute", "institut$"],
+
+  // -------------------------------------------------------------
+
+  // Cases where two skip magic keys are used, seperated by a character.
+  // Eg: $t$
+
   // amusement: algorithm gives amus$m$nt, override to amus$memt
   ["amusement", "amus$memt"],
-  // // quotation: algorithm gives quot$$ion, override to quot$tion
-  // ["quotation", "quot$tion"],
-  // // queen: algorithm gives qu$$n, override to qu$en
-  // ["queen", "qu$en"],
-  // // gaining: algorithm gives gain$$g, override to gain$ng
-  // ["gaining", "gain$ng"],
-  // // shining: algorithm gives shin$$g, override to shin$ng
-  // ["shining", "shin$ng"],
+  // quieted: algorithm gives qui$t$d, override to qui$ted
+  ["quieted", "qui$ted"],
+
+  // -------------------------------------------------------------
 ]);
 
 /**
