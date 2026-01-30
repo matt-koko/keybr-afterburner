@@ -69,6 +69,13 @@ const DEFAULT_WORD_OVERRIDES: ReadonlyMap<string, string> = new Map([
   // quieted: algorithm gives qui$t$d, override to qui$ted
   ["quieted", "qui$ted"],
 
+  // ditch: algorithm gives di$ch, override to ditch
+  // (SFB between $ and c)
+  ["ditch", "ditch"],
+  // account: algorithm gives ac#ount, override to account
+  // (SFB between # and c)
+  ["account", "account"],
+
   // -------------------------------------------------------------
 ]);
 
