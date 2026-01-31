@@ -76,6 +76,14 @@ const DEFAULT_WORD_OVERRIDES: ReadonlyMap<string, string> = new Map([
   // (SFB between # and c)
   ["account", "account"],
 
+  // todo, make a rule that disables z# c# w#
+
+  // associated: algorithm gives as#ociated, i don't like the movement of '#oc'
+  // TODO - maybe I should make a rule that disables '#oc'
+  ["associated", "associated"],
+  ["associate", "associate"],
+  // TODO - i should add a glob pattern for 'assoc*'
+
   // -------------------------------------------------------------
 ]);
 
