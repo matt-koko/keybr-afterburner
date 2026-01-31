@@ -19,13 +19,13 @@ export function NaturalWordsProp(): ReactNode {
         <Field>
           <CheckBox
             label={formatMessage({
-              id: "t_Prefer_natural_words",
-              defaultMessage: "Prefer natural words",
+              id: "t_Allow_pseudo_words",
+              defaultMessage: "Allow pseudo words",
             })}
-            checked={settings.get(lessonProps.guided.naturalWords)}
+            checked={settings.get(lessonProps.guided.allowPseudoWords)}
             onChange={(value) => {
               updateSettings(
-                settings.set(lessonProps.guided.naturalWords, value),
+                settings.set(lessonProps.guided.allowPseudoWords, value),
               );
             }}
           />
@@ -34,8 +34,8 @@ export function NaturalWordsProp(): ReactNode {
       <Explainer>
         <Description>
           <FormattedMessage
-            id="settings.naturalWords.description"
-            defaultMessage="Use the dictionary words as much as possible, and if not many such words are available, then use computer-generated pseudo-words. Natural words might be easier to type. Pseudo-words offer a much greater variety of letter combinations. If this option is enabled, you will see more pseudo-words in the beginning, when the letter list is short. However, as you unlock few more letters, there is a good chance that only the dictionary words will be used."
+            id="settings.allowPseudoWords.description"
+            defaultMessage="Use generated pseudo-words when there are less than 15 words in the list of valid dictionary words."
           />
         </Description>
       </Explainer>

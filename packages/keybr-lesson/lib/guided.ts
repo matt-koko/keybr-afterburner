@@ -141,10 +141,15 @@ export class GuidedLesson extends Lesson {
   }
 
   #makeWordGenerator(filter: Filter, rng: RNGStream) {
-    const pseudoWords = phoneticWords(this.model, filter, rng);
-    if (this.settings.get(lessonProps.guided.naturalWords)) {
-      const words = this.dictionary.find(filter).slice(0, 1000);
+    const startIndex = this.settings.get(lessonProps.guided.wordFrequencyStart);
+    const endIndex = this.settings.get(lessonProps.guided.wordFrequencyEnd);
+    const words = this.dictionary.find(filter).slice(startIndex, endIndex);
+
+    console.log(words.length);
+
+    if (this.settings.get(lessonProps.guided.allowPseudoWords)) {
       while (words.length < 15) {
+        const pseudoWords = phoneticWords(this.model, filter, rng);
         const word = pseudoWords();
         if (word != null) {
           words.push(word);
@@ -152,11 +157,11 @@ export class GuidedLesson extends Lesson {
           break;
         }
       }
-      if (words.length === 0) {
-        words.push("?");
-      }
-      return randomWords(words, rng);
     }
-    return pseudoWords;
+
+    if (words.length === 0) {
+      words.push("?");
+    }
+    return randomWords(words, rng);
   }
 }

@@ -14,13 +14,23 @@ export const lessonProps = {
   type: itemProp("lesson.type", LessonType.ALL, LessonType.GUIDED),
   length: numberProp("lesson.length", 0, { min: 0, max: 1 }),
   guided: {
-    naturalWords: booleanProp("lesson.guided.naturalWords", true),
+    allowPseudoWords: booleanProp("lesson.guided.allowPseudoWords", false),
     keyboardOrder: booleanProp("lesson.guided.keyboardOrder", false),
     alphabetSize: numberProp("lesson.guided.alphabetSize", 0, {
       min: 0,
       max: 1,
     }),
     recoverKeys: booleanProp("lesson.guided.recoverKeys", false),
+    /** Starting index in the frequency-sorted dictionary (0 = most common). */
+    wordFrequencyStart: numberProp("lesson.guided.wordFrequencyStart", 0, {
+      min: 0,
+      max: 10000,
+    }),
+    /** Ending index in the frequency-sorted dictionary. */
+    wordFrequencyEnd: numberProp("lesson.guided.wordFrequencyEnd", 1000, {
+      min: 1,
+      max: 10000,
+    }),
   } as const,
   wordList: {
     wordListSize: numberProp("lesson.wordList.wordListSize", 1000, {

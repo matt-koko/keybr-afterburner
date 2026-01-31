@@ -192,7 +192,10 @@ describe("generate text from a broken phonetic model", () => {
 });
 
 test("generate text with pseudo words", () => {
-  const settings = new Settings().set(lessonProps.guided.naturalWords, false);
+  const settings = new Settings().set(
+    lessonProps.guided.allowPseudoWords,
+    false,
+  );
   const keyboard = loadKeyboard(Layout.EN_US);
   const model = new FakePhoneticModel(["uno", "due", "tre"]);
   const lesson = new GuidedLesson(settings, keyboard, model, []);
@@ -216,7 +219,10 @@ test("generate text with pseudo words", () => {
 });
 
 test("generate text with natural words", () => {
-  const settings = new Settings().set(lessonProps.guided.naturalWords, true);
+  const settings = new Settings().set(
+    lessonProps.guided.allowPseudoWords,
+    true,
+  );
   const keyboard = loadKeyboard(Layout.EN_US);
   const model = new FakePhoneticModel(["uno", "due", "tre"]);
   const lesson = new GuidedLesson(settings, keyboard, model, [
