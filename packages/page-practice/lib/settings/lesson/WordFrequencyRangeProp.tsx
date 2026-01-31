@@ -1,4 +1,5 @@
-import { lessonProps } from "@keybr/lesson";
+import { type GuidedLesson, lessonProps } from "@keybr/lesson";
+import { Filter } from "@keybr/phonetic-model";
 import { useSettings } from "@keybr/settings";
 import {
   Description,
@@ -7,12 +8,28 @@ import {
   FieldList,
   TextField,
 } from "@keybr/widget";
-import { type ReactNode } from "react";
+import { type ReactNode, useMemo } from "react";
+import { useLessonKeys } from "../../practice/state/useLessonKeys.ts";
 
-export function WordFrequencyRangeProp(): ReactNode {
+export function WordFrequencyRangeProp({
+  lesson,
+}: {
+  readonly lesson: GuidedLesson;
+}): ReactNode {
   const { settings, updateSettings } = useSettings();
+  const lessonKeys = useLessonKeys(lesson);
   const startValue = settings.get(lessonProps.guided.wordFrequencyStart);
   const endValue = settings.get(lessonProps.guided.wordFrequencyEnd);
+
+  // Calculate available word count based on current settings and letter filter
+  const wordCount = useMemo(() => {
+    const filter = new Filter(
+      lessonKeys.findIncludedKeys(),
+      lessonKeys.findFocusedKey(),
+    );
+    const words = lesson.dictionary.find(filter);
+    return words.slice(startValue, endValue).length;
+  }, [lesson, lessonKeys, startValue, endValue]);
 
   const handleStartChange = (value: string) => {
     const num = parseInt(value, 10);
@@ -54,6 +71,12 @@ export function WordFrequencyRangeProp(): ReactNode {
           are more common words (0 = &quot;the&quot;, 1 = &quot;to&quot;, etc.).
           Set 0-100 for only the most common words, or 500-1000 for less common
           words.
+        </Description>
+        <Description>
+          <strong>
+            With this frequency range and your current letters, there are{" "}
+            {wordCount} word{wordCount !== 1 ? "s" : ""} available.
+          </strong>
         </Description>
       </Explainer>
     </>

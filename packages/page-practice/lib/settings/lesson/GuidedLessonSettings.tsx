@@ -38,7 +38,7 @@ export function GuidedLessonSettings({
         <RecoverKeysProp />
         <KeyboardOrderProp />
         <NaturalWordsProp />
-        <WordFrequencyRangeProp />
+        <WordFrequencyRangeProp lesson={lesson} />
         <RepeatWordsProp />
         <AlphabetSizeProp />
         <TextManglingProp />
