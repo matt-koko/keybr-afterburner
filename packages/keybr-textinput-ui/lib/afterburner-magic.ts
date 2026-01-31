@@ -82,7 +82,17 @@ const DEFAULT_WORD_OVERRIDES: ReadonlyMap<string, string> = new Map([
   // TODO - maybe I should make a rule that disables '#oc'
   ["associated", "associated"],
   ["associate", "associate"],
-  // TODO - i should add a glob pattern for 'assoc*'
+  // TODO - i should add a glob pattern for 'assoc*
+
+  // cannot: algorithm gives can#ot, override to cannot
+  // (i don't like the quick diagonal movement between c and #)
+  ["cannot", "cannot"],
+
+  // stomach: algorithm gives stom$ch, override to stomach
+  // (SFB between $ and c)
+  ["stomach", "stomach"],
+
+  // TODO - find a way to type "npm" comfortably. This might involve a new magic rule.
 
   // -------------------------------------------------------------
 ]);
